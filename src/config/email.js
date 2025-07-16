@@ -1,7 +1,6 @@
-// Backend API URL'i
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { API_ENDPOINTS, apiCall } from './api.js';
 
-// Mail gönderme API çağrısı
+// Normal iletişim formu için mail gönderme
 export const sendContactEmail = async (formData, files = {}) => {
   try {
     // FormData oluştur
@@ -17,15 +16,9 @@ export const sendContactEmail = async (formData, files = {}) => {
       }
     });
 
-    console.log('📤 Sending to API:', {
-      referenceId: formData.referenceId,
-      fileCategories: Object.keys(files).filter(key => files[key]?.length > 0),
-      totalFiles: Object.values(files).flat().length
-    });
-
-    const response = await fetch(`${API_BASE_URL}/api/send-kentsel-email`, {
+    const response = await fetch(API_ENDPOINTS.KENTSEL_EMAIL, {
       method: 'POST',
-      body: formDataToSend // Content-Type otomatik belirlenecek
+      body: formDataToSend
     });
 
     const result = await response.json();
@@ -37,6 +30,65 @@ export const sendContactEmail = async (formData, files = {}) => {
     return result;
   } catch (error) {
     console.error('Mail gönderme hatası:', error);
+    throw error;
+  }
+};
+
+// Kentsel dönüşüm formu için mail gönderme
+export const sendKentselEmail = async (formData, files = {}) => {
+  try {
+    // FormData oluştur
+    const formDataToSend = new FormData();
+    
+    // Backend'in beklediği formata dönüştür
+    const kentselData = {
+      name: formData.step1?.adSoyad || '',
+      email: formData.step1?.email || '',
+      phone: formData.step1?.telefon || '',
+      address: formData.step2?.acikAdres || '',
+      district: formData.step2?.ilce || '',
+      buildingAge: formData.step3?.binaYasi?.toString() || '',
+      buildingType: formData.step3?.binaDurumu || '',
+      floorCount: formData.step3?.katSayisi?.toString() || '',
+      apartmentCount: formData.step3?.bagimsisBolum?.toString() || '',
+      notes: JSON.stringify(formData) // Tüm form verilerini notes'a ekle
+    };
+
+    // Zorunlu alanları kontrol et
+    if (!kentselData.name || !kentselData.email || !kentselData.phone) {
+      throw new Error('Ad Soyad, E-posta ve Telefon alanları zorunludur');
+    }
+
+    // Backend'in beklediği alanları ekle
+    Object.entries(kentselData).forEach(([key, value]) => {
+      formDataToSend.append(key, value);
+    });
+
+    // Dosyaları ekle
+    Object.entries(files).forEach(([category, fileList]) => {
+      if (fileList && fileList.length > 0) {
+        fileList.forEach(file => {
+          if (file && file.name) { // Sadece geçerli dosyaları ekle
+            formDataToSend.append('files', file);
+          }
+        });
+      }
+    });
+
+    const response = await fetch(API_ENDPOINTS.KENTSEL_EMAIL, {
+      method: 'POST',
+      body: formDataToSend
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || result.error || 'Mail gönderilemedi');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Kentsel mail gönderme hatası:', error);
     throw error;
   }
 };

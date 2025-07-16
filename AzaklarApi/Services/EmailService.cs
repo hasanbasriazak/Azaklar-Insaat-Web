@@ -25,6 +25,8 @@ namespace AzaklarApi.Services
         {
             try
             {
+                _logger.LogInformation("📧 Starting email send process for: {Email}", request.Email);
+                
                 // Company email oluştur
                 var companyMessage = CreateContactMessage(request, isCompanyEmail: true);
                 
@@ -36,31 +38,45 @@ namespace AzaklarApi.Services
                 // SSL sertifika doğrulamasını geçici olarak devre dışı bırak (production için düzenlenecek)
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                 
-                await client.ConnectAsync(
-                    _configuration["Smtp:Host"], 
-                    int.Parse(_configuration["Smtp:Port"] ?? "587"), 
-                    MailKit.Security.SecureSocketOptions.StartTls
-                );
+                var smtpHost = _configuration["Smtp:Host"];
+                var smtpPort = int.Parse(_configuration["Smtp:Port"] ?? "587");
+                var smtpUsername = _configuration["Smtp:Username"];
+                
+                _logger.LogInformation("🔗 Connecting to SMTP: {Host}:{Port}", smtpHost, smtpPort);
+                
+                var secureOption = MailKit.Security.SecureSocketOptions.None;
+                if (smtpPort == 465)
+                {
+                    secureOption = MailKit.Security.SecureSocketOptions.SslOnConnect;
+                }
+                else if (smtpPort == 587)
+                {
+                    secureOption = MailKit.Security.SecureSocketOptions.StartTls;
+                }
+                await client.ConnectAsync(smtpHost, smtpPort, secureOption);
+                _logger.LogInformation("✅ SMTP connection established");
 
-                await client.AuthenticateAsync(
-                    _configuration["Smtp:Username"], 
-                    _configuration["Smtp:Password"]
-                );
+                _logger.LogInformation("🔐 Authenticating with username: {Username}", smtpUsername);
+                await client.AuthenticateAsync(smtpUsername, _configuration["Smtp:Password"]);
+                _logger.LogInformation("✅ SMTP authentication successful");
 
                 // Company email gönder
+                _logger.LogInformation("📤 Sending company email...");
                 await client.SendAsync(companyMessage);
                 _logger.LogInformation("✅ Company email sent for contact form: {Email}", request.Email);
 
                 // Customer confirmation email gönder
+                _logger.LogInformation("📤 Sending customer confirmation email...");
                 await client.SendAsync(customerMessage);
                 _logger.LogInformation("✅ Customer confirmation email sent: {Email}", request.Email);
 
                 await client.DisconnectAsync(true);
+                _logger.LogInformation("🔌 SMTP connection closed");
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Failed to send contact email for: {Email}", request.Email);
+                _logger.LogError(ex, "❌ Failed to send contact email for: {Email}. Error: {Error}", request.Email, ex.Message);
                 return false;
             }
         }
@@ -80,11 +96,20 @@ namespace AzaklarApi.Services
                 // SSL sertifika doğrulamasını geçici olarak devre dışı bırak (production için düzenlenecek)
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                 
-                await client.ConnectAsync(
-                    _configuration["Smtp:Host"], 
-                    int.Parse(_configuration["Smtp:Port"] ?? "587"), 
-                    MailKit.Security.SecureSocketOptions.StartTls
-                );
+                var smtpHost = _configuration["Smtp:Host"];
+                var smtpPort = int.Parse(_configuration["Smtp:Port"] ?? "587");
+                
+                var secureOption = MailKit.Security.SecureSocketOptions.None;
+                if (smtpPort == 465)
+                {
+                    secureOption = MailKit.Security.SecureSocketOptions.SslOnConnect;
+                }
+                else if (smtpPort == 587)
+                {
+                    secureOption = MailKit.Security.SecureSocketOptions.StartTls;
+                }
+                
+                await client.ConnectAsync(smtpHost, smtpPort, secureOption);
 
                 await client.AuthenticateAsync(
                     _configuration["Smtp:Username"], 

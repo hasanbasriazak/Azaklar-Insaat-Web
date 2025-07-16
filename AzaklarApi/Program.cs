@@ -7,8 +7,12 @@ if (builder.Environment.IsProduction())
 {
     builder.WebHost.ConfigureKestrel(options =>
     {
-        options.ListenAnyIP(80); // HTTP
-        options.ListenAnyIP(443, listenOptions =>
+        // Production'da port konfigürasyonunu daha esnek yap
+        var port = Environment.GetEnvironmentVariable("ASPNETCORE_PORT") ?? "80";
+        var httpsPort = Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT") ?? "443";
+        
+        options.ListenAnyIP(int.Parse(port)); // HTTP
+        options.ListenAnyIP(int.Parse(httpsPort), listenOptions =>
         {
             listenOptions.UseHttps(); // HTTPS
         });
@@ -76,7 +80,9 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 if (builder.Environment.IsProduction())
 {
+#if WINDOWS
     builder.Logging.AddEventLog();
+#endif
 }
 
 var app = builder.Build();
@@ -100,11 +106,11 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableS
 // Security headers middleware
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Add("X-Frame-Options", "DENY");
-    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.Add("X-Powered-By", "Azaklar API Server");
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["X-Powered-By"] = "Azaklar API Server";
     await next();
 });
 
@@ -152,5 +158,19 @@ app.Logger.LogInformation("🚀 Azaklar İnşaat API Server başlatılıyor");
 app.Logger.LogInformation("🌍 Environment: {Environment}", app.Environment.EnvironmentName);
 app.Logger.LogInformation("📧 SMTP: {SmtpHost}", app.Configuration["Smtp:Host"] ?? "mail.kurumsaleposta.com");
 app.Logger.LogInformation("✉️  Mail: {CompanyEmail}", app.Configuration["Company:Email"] ?? "kentsel@azaklaryapi.com");
+app.Logger.LogInformation("🔧 Port: {Port}", Environment.GetEnvironmentVariable("ASPNETCORE_PORT") ?? "80");
+app.Logger.LogInformation("🔒 HTTPS Port: {HttpsPort}", Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT") ?? "443");
+app.Logger.LogInformation("📁 Content Root: {ContentRoot}", app.Environment.ContentRootPath);
+app.Logger.LogInformation("🌐 Web Root: {WebRoot}", app.Environment.WebRootPath);
+
+try
+{
+    app.Logger.LogInformation("✅ API Server başarıyla başlatıldı!");
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "❌ API Server başlatılırken hata oluştu!");
+    throw;
+}
 
 app.Run();

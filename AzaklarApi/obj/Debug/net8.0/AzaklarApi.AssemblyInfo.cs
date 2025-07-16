@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AzaklarApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ae5f0b6245f2381872345d04c9d33f69cfb52bf7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69605b65eda97b03fbc86520e1e2a9eb0cac2639")]
 [assembly: System.Reflection.AssemblyProductAttribute("AzaklarApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AzaklarApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

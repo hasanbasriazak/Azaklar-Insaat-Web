@@ -1,7 +1,14 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { HiArrowRight, HiLocationMarker, HiCalendar } from 'react-icons/hi';
+import { HiArrowRight, HiLocationMarker, HiCalendar, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 const FeaturedProjects = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const sliderRef = useRef(null);
+
   const projects = [
     {
       id: 1,
@@ -74,6 +81,67 @@ const FeaturedProjects = () => {
     }
   };
 
+  // Mobil kontrolü
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Slider fonksiyonları
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % projects.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + projects.length) % projects.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch/Swipe fonksiyonları
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  // Auto-play için
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % projects.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
   return (
     <section className="section-padding section-white">
       <div className="container-custom">
@@ -86,7 +154,7 @@ const FeaturedProjects = () => {
           </p>
         </div>
 
-        {/* Projeler Grid */}
+        {/* Desktop Projeler Grid */}
         <div className="projects-grid">
           {projects.map((project) => (
             <Link 
@@ -156,10 +224,122 @@ const FeaturedProjects = () => {
           ))}
         </div>
 
+        {/* Mobile Projeler Slider */}
+        <div className="projects-slider-container">
+          <div 
+            ref={sliderRef}
+            className="projects-slider"
+            style={{ 
+              transform: `translateX(-${currentSlide * 100}%)`,
+              width: `${projects.length * 100}%`
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {projects.map((project, index) => (
+              <div key={project.id} className="projects-slide">
+                <Link 
+                  to={`/proje/${project.title.toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u')
+                    .replace(/ş/g, 's')
+                    .replace(/ı/g, 'i')
+                    .replace(/ö/g, 'o')
+                    .replace(/ç/g, 'c')}`}
+                  className="project-card"
+                >
+                  <div className="project-image-container">
+                    {/* Proje Resmi */}
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="project-image"
+                    />
+                    <div className="project-overlay" />
+                    
+                    {/* Kategori Badge */}
+                    <div 
+                      className="project-category"
+                      style={{ backgroundColor: getCategoryColor(project.status) }}
+                    >
+                      {project.category}
+                    </div>
+                    
+                    {/* Overlay Bilgiler */}
+                    <div className="project-info-overlay">
+                      <div className="project-location">
+                        <HiLocationMarker />
+                        <span>{project.location}</span>
+                      </div>
+                      <div className="project-year">
+                        <HiCalendar />
+                        <span>{project.year}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Proje Detayları */}
+                  <div className="project-details">
+                    <h3 className="project-title">{project.title}</h3>
+                    <p className="project-description">{project.description}</p>
+                    
+                    {/* İstatistikler */}
+                    <div className="project-stats">
+                      {project.stats.map((stat, idx) => (
+                        <div key={idx} className="stat">
+                          <div className="stat-value">{stat.value}{stat.unit}</div>
+                          <div className="stat-label">{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Detay Butonu */}
+                    <div className="project-link">
+                      Detayları Gör
+                      <HiArrowRight />
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Slider Controls */}
+          <div className="slider-controls">
+            <button 
+              className="slider-arrow" 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+            >
+              <HiChevronLeft />
+            </button>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {projects.map((_, index) => (
+                <button
+                  key={index}
+                  className={`slider-dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(index)}
+                />
+              ))}
+            </div>
+            
+            <button 
+              className="slider-arrow" 
+              onClick={nextSlide}
+              disabled={currentSlide === projects.length - 1}
+            >
+              <HiChevronRight />
+            </button>
+          </div>
+        </div>
+
         {/* Tüm Projeler Butonu */}
-        <div className="section-cta">
+        <div className="section-cta" style={{ marginTop: '60px' }}>
           <Link to="/projeler" className="btn btn-primary btn-large">
-            Tüm Projelerimizi Görüntüle
+            Tüm Projeleri Görüntüle
             <HiArrowRight />
           </Link>
         </div>

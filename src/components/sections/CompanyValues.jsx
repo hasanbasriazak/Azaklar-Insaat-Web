@@ -1,7 +1,14 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { HiShieldCheck, HiHeart, HiLightningBolt, HiTrendingUp, HiUsers, HiGlobe } from 'react-icons/hi';
+import { HiShieldCheck, HiHeart, HiLightningBolt, HiTrendingUp, HiUsers, HiGlobe, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 const CompanyValues = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const sliderRef = useRef(null);
+
   const values = [
     {
       icon: HiShieldCheck,
@@ -41,6 +48,67 @@ const CompanyValues = () => {
     }
   ];
 
+  // Mobil kontrolü
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Slider fonksiyonları
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % values.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + values.length) % values.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch/Swipe fonksiyonları
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  // Auto-play için
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % values.length);
+    }, 7000);
+
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
   return (
     <section className="section-padding section-gray">
       <div className="container-custom">
@@ -53,7 +121,7 @@ const CompanyValues = () => {
           </p>
         </div>
 
-        {/* Değerler Grid */}
+        {/* Desktop Değerler Grid */}
         <div className="services-grid">
           {values.map((value) => (
             <div key={value.title} className="service-card">
@@ -71,7 +139,66 @@ const CompanyValues = () => {
           ))}
         </div>
 
+        {/* Mobile Değerler Slider */}
+        <div className="values-slider-container">
+          <div 
+            ref={sliderRef}
+            className="values-slider"
+            style={{ 
+              transform: `translateX(-${currentSlide * 100}%)`,
+              width: `${values.length * 100}%`
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {values.map((value, index) => (
+              <div key={value.title} className="values-slide">
+                <div className="service-card">
+                  {/* İkon */}
+                  <div className="service-icon" style={{ backgroundColor: value.color }}>
+                    <value.icon />
+                  </div>
+                  
+                  {/* İçerik */}
+                  <div className="service-content">
+                    <h3 className="service-title">{value.title}</h3>
+                    <p className="service-description">{value.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
+          {/* Slider Controls */}
+          <div className="slider-controls">
+            <button 
+              className="slider-arrow" 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+            >
+              <HiChevronLeft />
+            </button>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {values.map((_, index) => (
+                <button
+                  key={index}
+                  className={`slider-dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(index)}
+                />
+              ))}
+            </div>
+            
+            <button 
+              className="slider-arrow" 
+              onClick={nextSlide}
+              disabled={currentSlide === values.length - 1}
+            >
+              <HiChevronRight />
+            </button>
+          </div>
+        </div>
 
         {/* CTA Bölümü */}
         <div style={{ textAlign: 'center' }}>

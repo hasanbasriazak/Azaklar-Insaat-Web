@@ -13,7 +13,6 @@ namespace AzaklarApi.Models
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Telefon zorunludur")]
-        [Phone(ErrorMessage = "Geçerli bir telefon numarası giriniz")]
         public string Phone { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Konu zorunludur")]
@@ -21,7 +20,7 @@ namespace AzaklarApi.Models
         public string Subject { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Mesaj zorunludur")]
-        [MinLength(10, ErrorMessage = "Mesaj en az 10 karakter olmalıdır")]
+        [MinLength(5, ErrorMessage = "Mesaj en az 5 karakter olmalıdır")]
         public string Message { get; set; } = string.Empty;
     }
 

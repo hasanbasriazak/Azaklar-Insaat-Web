@@ -1,7 +1,14 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { HiSearch, HiShieldCheck, HiDocumentText, HiTrash, HiCog, HiHome, HiClipboardList, HiKey, HiSupport } from 'react-icons/hi';
+import { HiSearch, HiShieldCheck, HiDocumentText, HiTrash, HiCog, HiHome, HiClipboardList, HiKey, HiSupport, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 const ProcessSteps = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const sliderRef = useRef(null);
+
   const steps = [
     {
       id: 1,
@@ -131,6 +138,67 @@ const ProcessSteps = () => {
     }
   ];
 
+  // Mobil kontrolü
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Slider fonksiyonları
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % steps.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + steps.length) % steps.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch/Swipe fonksiyonları
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  // Auto-play için
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % steps.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
   return (
     <section className="section-padding section-gray">
       <div className="container-custom">
@@ -143,8 +211,8 @@ const ProcessSteps = () => {
           </p>
         </div>
 
-        {/* Süreç Adımları - Inline Style */}
-        <div style={{ position: 'relative', marginBottom: '80px' }}>
+        {/* Desktop Süreç Adımları Grid */}
+        <div className="process-steps-grid" style={{ position: 'relative', marginBottom: '80px' }}>
           {/* Süreç Çizgisi */}
           <div style={{
             display: 'none',
@@ -278,6 +346,87 @@ const ProcessSteps = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Mobile Süreç Adımları Slider */}
+        <div className="process-slider-container">
+          <div 
+            ref={sliderRef}
+            className="process-slider"
+            style={{ 
+              transform: `translateX(-${currentSlide * 100}%)`,
+              width: `${steps.length * 100}%`
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {steps.map((step, index) => (
+              <div key={step.id} className="process-slide">
+                <div className="step-card">
+                  {/* Adım Numarası */}
+                  <div className="step-number">
+                    {step.id}
+                  </div>
+                  
+                  {/* İkon */}
+                  <div className="step-icon" style={{ backgroundColor: step.color }}>
+                    <step.icon />
+                  </div>
+                  
+                  {/* İçerik */}
+                  <div className="step-content">
+                    <h3 className="step-title">{step.title}</h3>
+                    <p className="step-description">{step.description}</p>
+                    
+                    {/* Detaylar */}
+                    <ul className="step-details">
+                      {step.details.map((detail, idx) => (
+                        <li key={idx} className="step-detail">
+                          <div className="detail-dot"></div>
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {/* Süre */}
+                    <div className="step-duration">
+                      <span>{step.duration}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Slider Controls */}
+          <div className="slider-controls">
+            <button 
+              className="slider-arrow" 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+            >
+              <HiChevronLeft />
+            </button>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {steps.map((_, index) => (
+                <button
+                  key={index}
+                  className={`slider-dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(index)}
+                />
+              ))}
+            </div>
+            
+            <button 
+              className="slider-arrow" 
+              onClick={nextSlide}
+              disabled={currentSlide === steps.length - 1}
+            >
+              <HiChevronRight />
+            </button>
           </div>
         </div>
 

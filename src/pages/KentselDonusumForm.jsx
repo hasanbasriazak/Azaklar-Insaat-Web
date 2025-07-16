@@ -13,7 +13,7 @@ import {
   HiDocumentAdd,
   HiCheckCircle
 } from 'react-icons/hi';
-import { sendContactEmail } from '../config/email';
+import { sendKentselEmail } from '../config/email';
 
 const KentselDonusumForm = () => {
   const navigate = useNavigate();
@@ -98,6 +98,10 @@ const KentselDonusumForm = () => {
         } else if (stepData.bagimsisBolum < 1 || stepData.bagimsisBolum > 500) {
           errors.bagimsisBolum = 'Geçerli bir bağımsız bölüm sayısı giriniz (1-500)';
         }
+        // Bina Durumu zorunlu
+        if (!stepData.binaDurumu || stepData.binaDurumu.trim() === '') {
+          errors.binaDurumu = 'Bina durumu (tipi) zorunludur';
+        }
         break;
 
       case 4:
@@ -167,7 +171,7 @@ const KentselDonusumForm = () => {
       };
 
       // Backend API'sine mail gönderme isteği
-      const result = await sendContactEmail(formData, files);
+      const result = await sendKentselEmail(formData, files);
       
       console.log('✅ Mail başarıyla gönderildi:', result);
       
@@ -176,7 +180,8 @@ const KentselDonusumForm = () => {
       console.error('❌ Form gönderimi hatası:', error);
       
       // Kullanıcıya hata mesajı göster
-      alert(`Mail gönderilemedi: ${error.message || 'Bilinmeyen hata'}\n\nLütfen daha sonra tekrar deneyin veya doğrudan iletişime geçin.`);
+      const errorMessage = error.message || 'Bilinmeyen hata';
+      alert(`Mail gönderilemedi: ${errorMessage}\n\nLütfen daha sonra tekrar deneyin veya doğrudan iletişime geçin.`);
     } finally {
       setIsSubmitting(false);
     }

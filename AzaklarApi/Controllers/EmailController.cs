@@ -26,7 +26,7 @@ namespace AzaklarApi.Controllers
             {
                 var errors = ModelState
                     .Where(x => x.Value?.Errors.Count > 0)
-                    .SelectMany(x => x.Value.Errors)
+                    .SelectMany(x => x.Value?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
                     .Select(x => x.ErrorMessage)
                     .ToList();
 
@@ -36,7 +36,17 @@ namespace AzaklarApi.Controllers
                 {
                     Success = false,
                     Message = "Geçersiz veri",
-                    Error = string.Join(", ", errors)
+                    Error = string.Join(", ", errors),
+                    Data = new { 
+                        validationErrors = errors,
+                        receivedData = new {
+                            name = request.Name,
+                            email = request.Email,
+                            phone = request.Phone,
+                            subject = request.Subject,
+                            message = request.Message
+                        }
+                    }
                 });
             }
 
@@ -93,7 +103,7 @@ namespace AzaklarApi.Controllers
             {
                 var errors = ModelState
                     .Where(x => x.Value?.Errors.Count > 0)
-                    .SelectMany(x => x.Value.Errors)
+                    .SelectMany(x => x.Value?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
                     .Select(x => x.ErrorMessage)
                     .ToList();
 
@@ -201,14 +211,30 @@ namespace AzaklarApi.Controllers
                     status = "OK",
                     timestamp = DateTime.Now,
                     version = "1.0.0",
-                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
-                    uptime = Environment.TickCount64 / 1000.0,
-                    endpoints = new[]
-                    {
-                        "/api/email/health",
-                        "/api/email/send-contact-email",
-                        "/api/email/send-kentsel-email"
-                    }
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+                    uptime = Environment.TickCount / 1000.0,
+                    endpoints = new[] { "/api/email/health", "/api/email/send-contact-email", "/api/email/send-kentsel-email" }
+                }
+            });
+        }
+
+        [HttpGet("debug-smtp")]
+        public ActionResult<ApiResponse<object>> DebugSmtp()
+        {
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "SMTP Debug Info",
+                Data = new
+                {
+                    smtpHost = configuration["Smtp:Host"],
+                    smtpPort = configuration["Smtp:Port"],
+                    smtpUsername = configuration["Smtp:Username"],
+                    smtpPassword = configuration["Smtp:Password"]?.Length > 0 ? "***SET***" : "***NOT SET***",
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+                    timestamp = DateTime.Now
                 }
             });
         }

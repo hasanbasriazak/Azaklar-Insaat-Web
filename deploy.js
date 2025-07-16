@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import ftp from 'basic-ftp';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,12 +21,44 @@ const config = {
     username: 'apiazaklaryapi',
     password: 'ncAk40W%stGu8net8',
     remoteDir: '/',
-    localDir: './server'
+    localDir: './api-deploy/AzaklarApi'
   }
 };
 
 console.log('🚀 Azaklar İnşaat Deploy Script');
 console.log('================================');
+
+async function uploadToFTP(serverConfig, localPath, description) {
+  const client = new ftp.Client();
+  client.ftp.verbose = false;
+  
+  try {
+    console.log(`\n📤 Uploading ${description} to FTP...`);
+    console.log(`Server: ${serverConfig.host}`);
+    console.log(`Username: ${serverConfig.username}`);
+    
+    await client.access({
+      host: serverConfig.host,
+      user: serverConfig.username,
+      password: serverConfig.password,
+      secure: false
+    });
+    
+    console.log('✅ FTP connection established');
+    
+    // Upload files
+    await client.uploadFromDir(localPath);
+    
+    console.log(`✅ ${description} uploaded successfully!`);
+    return true;
+    
+  } catch (error) {
+    console.error(`❌ ${description} upload failed:`, error.message);
+    return false;
+  } finally {
+    client.close();
+  }
+}
 
 async function deployFrontend() {
   console.log('📦 Building frontend...');
@@ -41,6 +74,24 @@ async function deployFrontend() {
     
     console.log('🔨 Building production version...');
     execSync('npm run build', { stdio: 'inherit' });
+    
+    // Remove unnecessary asset folders after build
+    console.log('🗑️ Removing unnecessary asset folders...');
+    const unnecessaryFolders = [
+      './dist/assets/bagcilar_meydan_life',
+      './dist/assets/fatih_gulbahce_konagi', 
+      './dist/assets/haznedar_park'
+    ];
+    
+    unnecessaryFolders.forEach(folder => {
+      if (fs.existsSync(folder)) {
+        fs.rmSync(folder, { recursive: true, force: true });
+        console.log(`   ✓ Removed: ${folder}`);
+      }
+    });
+    
+    // Note: Using HashRouter instead of server-side routing
+    console.log('   ✓ Using HashRouter for client-side routing');
     
     console.log('✅ Frontend build completed!');
     
@@ -81,7 +132,7 @@ async function deployAPI() {
     <handlers>
       <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
     </handlers>
-    <aspNetCore processPath="dotnet" arguments="AzaklarApi.dll" stdoutLogEnabled="false" stdoutLogFile=".\\logs\\stdout" />
+    <aspNetCore processPath="dotnet" arguments=".\\AzaklarApi.dll" stdoutLogEnabled="true" stdoutLogFile=".\\logs\\stdout" hostingModel="inprocess" />
   </system.webServer>
 </configuration>`;
     
@@ -194,14 +245,32 @@ async function main() {
   const args = process.argv.slice(2);
   
   if (args.includes('--frontend-only')) {
-    console.log('🖥️  Building frontend only...');
-    const success = await deployFrontend();
-    if (success) checkBundleSize();
+    console.log('🖥️  Building and uploading frontend only...');
+    const buildSuccess = await deployFrontend();
+    if (buildSuccess) {
+      checkBundleSize();
+      const uploadSuccess = await uploadToFTP(config.frontend, config.frontend.localDir, 'Frontend');
+      if (uploadSuccess) {
+        console.log('\n🎉 Frontend deployment completed!');
+      } else {
+        console.log('\n❌ Frontend upload failed!');
+        process.exit(1);
+      }
+    }
     
   } else if (args.includes('--api-only')) {
-    console.log('🔌 Preparing API only...');
-    const success = await deployAPI();
-    if (success) checkBundleSize();
+    console.log('🔌 Building and uploading API only...');
+    const buildSuccess = await deployAPI();
+    if (buildSuccess) {
+      checkBundleSize();
+      const uploadSuccess = await uploadToFTP(config.api, config.api.localDir, 'API');
+      if (uploadSuccess) {
+        console.log('\n🎉 API deployment completed!');
+      } else {
+        console.log('\n❌ API upload failed!');
+        process.exit(1);
+      }
+    }
     
   } else if (args.includes('--analyze')) {
     checkBundleSize();
@@ -215,10 +284,24 @@ async function main() {
     
     if (frontendSuccess && apiSuccess) {
       checkBundleSize();
-      showDeployInstructions();
-      console.log('\n🎉 Full deployment preparation completed!');
+      
+      // Upload both to FTP
+      console.log('\n🚀 Starting FTP uploads...');
+      
+      const frontendUpload = await uploadToFTP(config.frontend, config.frontend.localDir, 'Frontend');
+      const apiUpload = await uploadToFTP(config.api, config.api.localDir, 'API');
+      
+      if (frontendUpload && apiUpload) {
+        console.log('\n🎉 Full deployment completed successfully!');
+        console.log('\n🔗 Test URLs:');
+        console.log('Frontend: https://azaklaryapi.com');
+        console.log('API Health: https://api.azaklaryapi.com/api/health');
+      } else {
+        console.log('\n❌ Deployment failed!');
+        process.exit(1);
+      }
     } else {
-      console.log('\n❌ Deployment preparation failed!');
+      console.log('\n❌ Build failed!');
       process.exit(1);
     }
   }

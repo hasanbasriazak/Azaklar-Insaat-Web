@@ -60,10 +60,10 @@ const Footer = () => {
               <img src={logo} alt="Azaklar İnşaat" style={{ height: '40px', width: 'auto' }} />
             </div>
             <p style={{ color: '#9ca3af', lineHeight: '1.6', marginBottom: '24px' }}>
-                              40 yıllık deneyimimizle, kaliteli ve güvenilir inşaat çözümleri sunuyoruz. 
+              40 yıllık deneyimimizle, kaliteli ve güvenilir inşaat çözümleri sunuyoruz. 
               Her projede mükemmellik ve müşteri memnuniyeti önceliğimizdir.
             </p>
-            <div style={{ display: 'flex', gap: '16px' }}>
+            <div className="social-links" style={{ display: 'flex', gap: '16px' }}>
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
@@ -153,8 +153,8 @@ const Footer = () => {
           {/* İletişim Bilgileri */}
           <div className="footer-section">
             <h4>İletişim</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <div className="contact-info" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="contact-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <HiLocationMarker style={{ width: '20px', height: '20px', color: '#f97316', marginTop: '4px' }} />
                 <div>
                   <p style={{ color: '#9ca3af', margin: 0 }}>
@@ -163,15 +163,15 @@ const Footer = () => {
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <HiPhone style={{ width: '20px', height: '20px', color: '#f97316' }} />
                 <p style={{ color: '#9ca3af', margin: 0 }}>(212) 555 03-96</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <HiMail style={{ width: '20px', height: '20px', color: '#f97316' }} />
                 <p style={{ color: '#9ca3af', margin: 0 }}>info@azaklaryapi.com</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="contact-item" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <HiGlobeAlt style={{ width: '20px', height: '20px', color: '#f97316' }} />
                 <p style={{ color: '#9ca3af', margin: 0 }}>www.azaklaryapi.com</p>
               </div>

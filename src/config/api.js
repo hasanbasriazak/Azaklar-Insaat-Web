@@ -1,10 +1,10 @@
 // API Configuration
 const config = {
   development: {
-    API_BASE_URL: 'http://localhost:3001'
+    API_BASE_URL: 'http://localhost:5177'
   },
   production: {
-    API_BASE_URL: 'http://94.73.149.144:3001'
+    API_BASE_URL: 'http://api.azaklaryapi.com'
   }
 };
 
@@ -18,9 +18,9 @@ const currentConfig = isProduction ? config.production : config.development;
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  CONTACT_EMAIL: `${currentConfig.API_BASE_URL}/send-contact-email`,
-  KENTSEL_EMAIL: `${currentConfig.API_BASE_URL}/send-kentsel-email`,
-  HEALTH: `${currentConfig.API_BASE_URL}/health`
+  CONTACT_EMAIL: `${currentConfig.API_BASE_URL}/api/email/send-contact-email`,
+  KENTSEL_EMAIL: `${currentConfig.API_BASE_URL}/api/email/send-kentsel-email`,
+  HEALTH: `${currentConfig.API_BASE_URL}/api/email/health`
 };
 
 // Utility function for API calls
@@ -46,7 +46,13 @@ export const apiCall = async (endpoint, options = {}) => {
     const data = await response.json();
     
     if (!response.ok) {
-      throw new Error(data.message || 'API request failed');
+      // API'den dönen error ve validationErrors'u da döndür
+      return {
+        success: false,
+        error: data.error || data.message || 'API request failed',
+        validationErrors: data.data?.validationErrors || data.errors || null,
+        status: response.status
+      };
     }
     
     return { success: true, data };
@@ -54,7 +60,9 @@ export const apiCall = async (endpoint, options = {}) => {
     console.error('API Error:', error);
     return { 
       success: false, 
-      error: error.message || 'Network error occurred' 
+      error: error.message || 'Network error occurred',
+      validationErrors: null,
+      status: null
     };
   }
 };
@@ -66,4 +74,4 @@ export const getApiConfig = () => ({
   endpoints: API_ENDPOINTS
 });
 
-console.log('🔗 API Config loaded:', getApiConfig()); 
+// API configuration loaded 

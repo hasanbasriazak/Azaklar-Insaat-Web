@@ -1,7 +1,14 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { HiHome, HiRefresh, HiClipboardList, HiCog, HiOfficeBuilding, HiChat } from 'react-icons/hi';
+import { HiHome, HiRefresh, HiClipboardList, HiCog, HiOfficeBuilding, HiChat, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 const Services = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const sliderRef = useRef(null);
+
   const services = [
     {
       icon: HiHome,
@@ -47,6 +54,67 @@ const Services = () => {
     }
   ];
 
+  // Mobil kontrolü
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Slider fonksiyonları
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % services.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + services.length) % services.length);
+  };
+
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch/Swipe fonksiyonları
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  // Auto-play için
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % services.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isMobile]);
+
   return (
     <section id="services" className="section-padding section-gray">
       <div className="container-custom">
@@ -59,7 +127,7 @@ const Services = () => {
           </p>
         </div>
 
-        {/* Hizmetler Grid */}
+        {/* Desktop Hizmetler Grid */}
         <div className="services-grid">
           {services.map((service) => (
             <div key={service.title} className="service-card">
@@ -85,6 +153,77 @@ const Services = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mobile Hizmetler Slider */}
+        <div className="services-slider-container">
+          <div 
+            ref={sliderRef}
+            className="services-slider"
+            style={{ 
+              transform: `translateX(-${currentSlide * 100}%)`,
+              width: `${services.length * 100}%`
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {services.map((service, index) => (
+              <div key={service.title} className="services-slide">
+                <div className="service-card">
+                  {/* İkon */}
+                  <div className="service-icon" style={{ backgroundColor: service.color }}>
+                    <service.icon />
+                  </div>
+                  
+                  {/* İçerik */}
+                  <div className="service-content">
+                    <h3 className="service-title">{service.title}</h3>
+                    <p className="service-description">{service.description}</p>
+                    
+                    {/* Özellikler */}
+                    <ul className="service-features">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="service-feature">
+                          <div className="feature-dot"></div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Slider Controls */}
+          <div className="slider-controls">
+            <button 
+              className="slider-arrow" 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+            >
+              <HiChevronLeft />
+            </button>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {services.map((_, index) => (
+                <button
+                  key={index}
+                  className={`slider-dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(index)}
+                />
+              ))}
+            </div>
+            
+            <button 
+              className="slider-arrow" 
+              onClick={nextSlide}
+              disabled={currentSlide === services.length - 1}
+            >
+              <HiChevronRight />
+            </button>
+          </div>
         </div>
 
         {/* CTA Bölümü */}

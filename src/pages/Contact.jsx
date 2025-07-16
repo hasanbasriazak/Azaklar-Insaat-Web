@@ -20,6 +20,7 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [validationErrors, setValidationErrors] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,6 +34,7 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
+    setValidationErrors(null);
 
     try {
       const result = await apiCall(API_ENDPOINTS.CONTACT_EMAIL, {
@@ -49,9 +51,11 @@ const Contact = () => {
           subject: '',
           message: ''
         });
+        setValidationErrors(null);
       } else {
         setSubmitStatus('error');
-        console.error('Contact form error:', result.error);
+        setValidationErrors(result.validationErrors);
+        console.error('Contact form error:', result.error, result.validationErrors);
       }
     } catch (error) {
       console.error('İletişim formu gönderim hatası:', error);
@@ -221,6 +225,17 @@ const Contact = () => {
                 </motion.div>
               )}
 
+              {/* Validation Errors */}
+              {validationErrors && Array.isArray(validationErrors) && validationErrors.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <ul className="text-yellow-800 text-sm space-y-1">
+                    {validationErrors.map((err, idx) => (
+                      <li key={idx}>⚠️ {err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -260,13 +275,14 @@ const Contact = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Telefon
+                      Telefon *
                     </label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
                       style={{ focusRingColor: '#1e3a8a' }}
                       onFocus={(e) => e.target.style.ringColor = '#1e3a8a'}
@@ -311,11 +327,12 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleInputChange}
                     required
+                    minLength={5}
                     rows={6}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all resize-none"
                     style={{ focusRingColor: '#1e3a8a' }}
                     onFocus={(e) => e.target.style.ringColor = '#1e3a8a'}
-                    placeholder="Mesajınızı buraya yazın..."
+                    placeholder="Mesajınızı buraya yazın... (en az 5 karakter)"
                   ></textarea>
                 </div>
 
