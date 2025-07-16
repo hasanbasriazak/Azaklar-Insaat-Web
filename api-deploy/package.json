@@ -1,0 +1,46 @@
+{
+  "name": "azaklar-insaat-api",
+  "version": "1.0.0",
+  "description": "Azaklar İnşaat API Server - Email ve form işlemleri",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node index.js",
+    "production": "NODE_ENV=production node start.js",
+    "pm2:start": "pm2 start start.js --name azaklar-api --interpreter node",
+    "pm2:stop": "pm2 stop azaklar-api",
+    "pm2:restart": "pm2 restart azaklar-api",
+    "pm2:logs": "pm2 logs azaklar-api",
+    "install:prod": "npm install --only=production"
+  },
+  "keywords": [
+    "azaklar",
+    "insaat",
+    "api",
+    "email",
+    "nodejs",
+    "express"
+  ],
+  "author": {
+    "name": "Azaklar Yapı Sanayi Tic. Ltd. Şti.",
+    "email": "kentsel@azaklaryapi.com"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "nodemailer": "^6.10.1",
+    "multer": "^2.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hasanbasriazak/Azaklar-Insaat-Web.git",
+    "directory": "server"
+  },
+  "license": "UNLICENSED",
+  "private": true
+} 

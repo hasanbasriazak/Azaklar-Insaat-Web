@@ -8,6 +8,7 @@ import {
   HiCheckCircle,
   HiExclamationCircle
 } from 'react-icons/hi';
+import { API_ENDPOINTS, apiCall } from '../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -34,17 +35,12 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      const response = await fetch('http://localhost:3001/api/send-contact-email', {
+      const result = await apiCall(API_ENDPOINTS.CONTACT_EMAIL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setSubmitStatus('success');
         setFormData({
           name: '',
@@ -55,6 +51,7 @@ const Contact = () => {
         });
       } else {
         setSubmitStatus('error');
+        console.error('Contact form error:', result.error);
       }
     } catch (error) {
       console.error('İletişim formu gönderim hatası:', error);

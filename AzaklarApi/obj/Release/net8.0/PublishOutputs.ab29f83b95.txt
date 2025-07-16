@@ -1,0 +1,17 @@
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/AzaklarApi
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/appsettings.Development.json
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/appsettings.json
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/appsettings.Production.json
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/AzaklarApi.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/AzaklarApi.deps.json
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/AzaklarApi.runtimeconfig.json
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/AzaklarApi.pdb
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/BouncyCastle.Cryptography.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/MailKit.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/Microsoft.OpenApi.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/MimeKit.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/Swashbuckle.AspNetCore.Swagger.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/Swashbuckle.AspNetCore.SwaggerGen.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/Swashbuckle.AspNetCore.SwaggerUI.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/System.Security.Cryptography.Pkcs.dll
+/Users/hasanbasri/Desktop/Projeler/Azaklar_Insaat/api-deploy/AzaklarApi/runtimes/win/lib/net8.0/System.Security.Cryptography.Pkcs.dll

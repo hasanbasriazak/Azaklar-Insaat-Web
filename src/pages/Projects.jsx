@@ -16,7 +16,7 @@ const Projects = () => {
       category: 'Tamamlanan',
       status: 'completed',
       description: 'Güngören\'in en merkezi konumunda park ve İSPARK kapalı otoparka cepheli modern konut projesi. 2 blok halinde tasarlanan yapımızda toplamda 16 daire bulunmaktadır.',
-      image: '/src/assets/haznedar_park/26.jpg',
+      image: '/assets/haznedar_park/26.jpg',
       stats: [
         { value: '6500', label: 'İnşaat Alanı', unit: 'm²' },
         { value: '16', label: 'Daire', unit: '' },
@@ -31,7 +31,7 @@ const Projects = () => {
       category: 'Tamamlanan',
       status: 'completed',
       description: 'İstanbul Bağcılar Meydan\'da konumlanmış modern yaşam projemiz. 12 katlı yapımızda 28 adet 3+1 daire, 2 ticari dükkan ve 3 katlı kapalı otopark bulunmaktadır.',
-      image: '/src/assets/bagcilar_meydan_life/a7-min.png',
+      image: '/assets/bagcilar_meydan_life/a7-min.png',
       stats: [
         { value: '12500', label: 'İnşaat Alanı', unit: 'm²' },
         { value: '28', label: 'Daire', unit: '' },
@@ -46,7 +46,7 @@ const Projects = () => {
       category: 'Tarihi Restorasyon',
       status: 'completed',
       description: 'İstanbul Fatih Gülbahçe Sokağı\'nda bulunan tarihi konak restorasyonumuz. Bodrum katı betonarme, üzeri 3 kat tamamen ahşap yapım.',
-      image: '/src/assets/fatih_gulbahce_konagi/12.jpg',
+      image: '/assets/fatih_gulbahce_konagi/12.jpg',
       stats: [
         { value: '1200', label: 'İnşaat Alanı', unit: 'm²' },
         { value: '1', label: 'Konak', unit: '' },
