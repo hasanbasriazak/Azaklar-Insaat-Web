@@ -20,7 +20,8 @@ const currentConfig = isProduction ? config.production : config.development;
 export const API_ENDPOINTS = {
   CONTACT_EMAIL: `${currentConfig.API_BASE_URL}/api/email/send-contact-email`,
   KENTSEL_EMAIL: `${currentConfig.API_BASE_URL}/api/email/send-kentsel-email`,
-  HEALTH: `${currentConfig.API_BASE_URL}/api/email/health`
+  HEALTH: `${currentConfig.API_BASE_URL}/api/email/health`,
+  PROJECTS: `${currentConfig.API_BASE_URL}/api/projects`
 };
 
 // Utility function for API calls

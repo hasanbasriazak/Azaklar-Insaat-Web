@@ -116,7 +116,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="/hakkimizda" element={<About />} />
             <Route path="/projeler" element={<Projects />} />
-            <Route path="/proje/:projectId" element={<ProjectDetail />} />
+            <Route path="/proje/:slug" element={<ProjectDetail />} />
             <Route path="/kentsel-donusum-danismanligi" element={<KentselDonusumForm />} />
             <Route path="/iletisim" element={<Contact />} />
           </Route>

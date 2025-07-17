@@ -1,4 +1,6 @@
 using AzaklarApi.Services;
+using AzaklarApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,16 @@ if (builder.Environment.IsProduction())
 }
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+
+// EF Core MSSQL
+builder.Services.AddDbContext<AzaklarDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -91,6 +102,15 @@ var app = builder.Build();
 
 // Use CORS
 app.UseCors("AzaklarPolicy");
+
+// Static files for uploads
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/uploads"
+});
 
 // Swagger - only in development or when explicitly enabled
 if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableSwagger"))
