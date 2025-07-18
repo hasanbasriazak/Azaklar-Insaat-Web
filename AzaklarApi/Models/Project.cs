@@ -79,5 +79,6 @@ namespace AzaklarApi.Models
         [ForeignKey("Project")]
         public int ProjectId { get; set; }
         public Project? Project { get; set; }
+        public bool IsFeatured { get; set; } = false;
     }
 } 

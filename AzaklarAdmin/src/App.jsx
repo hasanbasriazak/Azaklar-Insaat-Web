@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import ProjectAdd from './ProjectAdd';
-import { API_ENDPOINTS, apiCall } from './config/api';
+import { API_ENDPOINTS, apiCall, debugApiConfig } from './config/api';
 import { HiMenu, HiX, HiHome, HiFolder, HiPlus, HiLogout } from 'react-icons/hi';
 
 function Sidebar({ isOpen, onToggle, selected, onSelect }) {
@@ -223,6 +223,11 @@ function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [editProject, setEditProject] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Debug API configuration on mount
+  useEffect(() => {
+    debugApiConfig();
+  }, []);
 
   // Giriş ekranı
   if (!isLoggedIn) {

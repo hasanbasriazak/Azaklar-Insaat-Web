@@ -3,6 +3,55 @@ import { Link } from 'react-router-dom';
 import { HiArrowRight, HiLocationMarker, HiCalendar, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 import { API_ENDPOINTS, apiCall } from '../../config/api';
 
+const baseUrl = import.meta.env.PROD ? "https://api.azaklaryapi.com" : "http://localhost:5177";
+
+// Resim yükleme komponenti
+const ImageLoader = ({ src, alt, fallbackSrc, className }) => {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+
+  const handleLoad = () => {
+    setImageLoading(false);
+    setImageError(false);
+  };
+
+  const handleError = () => {
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setImageLoading(true);
+    setImageError(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full">
+      {imageLoading && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+      {!imageError && (
+        <img
+          src={currentSrc}
+          alt={alt}
+          className={`${className} ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      )}
+      {imageError && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+          <div className="text-gray-400 text-sm">Resim bulunamadı</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FeaturedProjects = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -105,13 +154,10 @@ const FeaturedProjects = () => {
               <Link to={`/proje/${project.slug}`}>
                 {/* Proje Resmi */}
                 <div className="project-image-container">
-                  <img
-                    src={project.images && project.images.length > 0 ? project.images[0] : '/src/assets/haznedar_park/26.jpg'}
+                  <ImageLoader
+                    src={`${baseUrl}${project.images && project.images.length > 0 ? project.images[0] : ''}`}
                     alt={project.title}
                     className="project-image"
-                    onError={(e) => {
-                      e.target.src = '/src/assets/haznedar_park/26.jpg';
-                    }}
                   />
                   <div className="project-overlay" />
                   
@@ -184,8 +230,8 @@ const FeaturedProjects = () => {
                 >
                   <div className="project-image-container">
                     {/* Proje Resmi */}
-                    <img
-                      src={project.images && project.images[0] ? (project.images[0].imageUrl || project.images[0]) : '/assets/placeholder.jpg'}
+                    <ImageLoader
+                      src={`${baseUrl}${project.images && project.images[0] ? (project.images[0].imageUrl || project.images[0]) : ''}`}
                       alt={project.title}
                       className="project-image"
                     />

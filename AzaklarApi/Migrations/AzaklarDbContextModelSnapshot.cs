@@ -217,6 +217,9 @@ namespace AzaklarApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 

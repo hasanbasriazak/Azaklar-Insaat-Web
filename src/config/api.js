@@ -4,7 +4,7 @@ const config = {
     API_BASE_URL: 'http://localhost:5177'
   },
   production: {
-    API_BASE_URL: 'http://api.azaklaryapi.com'
+    API_BASE_URL: 'https://api.azaklaryapi.com'
   }
 };
 

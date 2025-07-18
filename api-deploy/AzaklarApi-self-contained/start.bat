@@ -1,0 +1,3 @@
+@echo off
+echo Starting Azaklar Insaat API...
+AzaklarApi.exe

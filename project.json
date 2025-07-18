@@ -1,0 +1,24 @@
+{
+  "id": 1,
+  "title": "Haznedar Park a",
+  "slug": "haznedar-park-a",
+  "description": "Güngören'in en merkezi konumunda park ve İSPARK kapalı otoparka cepheli modern konut projesi.",
+  "fullDescription": "Haznedar Park projesi, Güngören'in en merkezi konumlanmış modern bir yaşam alanıdır. Park manzaralı ve İSPARK kapalı otoparka cepheli bu özel projemiz, 2 blok halinde tasarlanmış olup toplamda 16 daire barındırmaktadır.",
+  "location": "Güngören, İstanbul",
+  "year": "2023",
+  "category": "Konut",
+  "status": 2,
+  "features": [
+    { "feature": "Park manzaralı konumlanma" },
+    { "feature": "İSPARK kapalı otopark erişimi" },
+    { "feature": "2 blok modern tasarım" },
+    { "feature": "Merkezi konum avantajı" },
+    { "feature": "Modern altyapı sistemleri" }
+  ],
+  "stats": [
+    { "id": 1, "value": "6500", "label": "İnşaat Alanı", "unit": "m²", "projectId": 1, "project": null },
+    { "id": 2, "value": "16", "label": "Daire", "unit": "", "projectId": 1, "project": null },
+    { "id": 3, "value": "6", "label": "Kat", "unit": "", "projectId": 1, "project": null }
+  ],
+  "images": []
+} 

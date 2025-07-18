@@ -52,43 +52,113 @@ namespace AzaklarApi.Controllers
             return Ok(project);
         }
 
-        // Proje güncelle
+        // Proje güncelle (PUT)
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] Project project)
         {
-            var existing = await _context.Projects
-                .Include(p => p.Features)
-                .Include(p => p.Stats)
-                .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.Id == project.Id);
-            if (existing == null)
-                return NotFound();
+            return await UpdateProject(project);
+        }
 
-            // Slug kontrolü (kendi slug'ı hariç)
-            if (await _context.Projects.AnyAsync(p => p.Slug == project.Slug && p.Id != project.Id))
-                return BadRequest(new { message = "Aynı slug ile başka bir proje mevcut." });
+        // Proje güncelle (POST - alternatif)
+        [HttpPost("update")]
+        public async Task<IActionResult> UpdatePost([FromBody] Project project)
+        {
+            return await UpdateProject(project);
+        }
 
-            // Ana alanlar
-            existing.Title = project.Title;
-            existing.Slug = project.Slug;
-            existing.Description = project.Description;
-            existing.FullDescription = project.FullDescription;
-            existing.Location = project.Location;
-            existing.Year = project.Year;
-            existing.Category = project.Category;
-            existing.Status = project.Status;
+        private async Task<IActionResult> UpdateProject(Project project)
+        {
+            try
+            {
+                if (project == null)
+                    return BadRequest(new { success = false, message = "Proje verisi boş olamaz" });
 
-            // Özellikler
-            _context.ProjectFeatures.RemoveRange(existing.Features);
-            existing.Features = project.Features;
-            // İstatistikler
-            _context.ProjectStats.RemoveRange(existing.Stats);
-            existing.Stats = project.Stats;
-            // Resimler - mevcut resimleri koru, sadece yeni eklenenleri ekle
-            // existing.Images = project.Images; // Bu satırı kaldırıyoruz
+                var existing = await _context.Projects
+                    .Include(p => p.Features)
+                    .Include(p => p.Stats)
+                    .Include(p => p.Images)
+                    .FirstOrDefaultAsync(p => p.Id == project.Id);
+                
+                if (existing == null)
+                    return NotFound(new { success = false, message = "Proje bulunamadı" });
 
-            await _context.SaveChangesAsync();
-            return Ok(existing);
+                // Slug kontrolü (kendi slug'ı hariç)
+                if (await _context.Projects.AnyAsync(p => p.Slug == project.Slug && p.Id != project.Id))
+                    return BadRequest(new { success = false, message = "Aynı slug ile başka bir proje mevcut." });
+
+                // Ana alanlar
+                existing.Title = project.Title;
+                existing.Slug = project.Slug;
+                existing.Description = project.Description;
+                existing.FullDescription = project.FullDescription;
+                existing.Location = project.Location;
+                existing.Year = project.Year;
+                existing.Category = project.Category;
+                existing.Status = project.Status;
+
+                // Özellikler
+                if (existing.Features != null)
+                {
+                    _context.ProjectFeatures.RemoveRange(existing.Features);
+                }
+                existing.Features = new List<ProjectFeature>();
+                if (project.Features != null)
+                {
+                    foreach (var feature in project.Features)
+                    {
+                        if (!string.IsNullOrEmpty(feature.Feature))
+                        {
+                            existing.Features.Add(new ProjectFeature 
+                            { 
+                                Feature = feature.Feature, 
+                                ProjectId = existing.Id 
+                            });
+                        }
+                    }
+                }
+                
+                // İstatistikler
+                if (existing.Stats != null)
+                {
+                    _context.ProjectStats.RemoveRange(existing.Stats);
+                }
+                existing.Stats = new List<ProjectStat>();
+                if (project.Stats != null)
+                {
+                    foreach (var stat in project.Stats)
+                    {
+                        if (!string.IsNullOrEmpty(stat.Value) && !string.IsNullOrEmpty(stat.Label))
+                        {
+                            existing.Stats.Add(new ProjectStat 
+                            { 
+                                Value = stat.Value, 
+                                Label = stat.Label, 
+                                Unit = stat.Unit ?? "", 
+                                ProjectId = existing.Id 
+                            });
+                        }
+                    }
+                }
+                
+                // Resimler - mevcut resimleri koru, sadece yeni eklenenleri ekle
+                // existing.Images = project.Images; // Bu satırı kaldırıyoruz
+
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { 
+                    success = true, 
+                    message = "Proje başarıyla güncellendi",
+                    data = existing 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = "Proje güncellenirken hata oluştu",
+                    error = ex.Message 
+                });
+            }
         }
 
         // Proje sil
@@ -142,7 +212,7 @@ namespace AzaklarApi.Controllers
         }
 
         // Resim silme
-        [HttpDelete("images/{imageId}")]
+        [HttpPost("images/{imageId}/delete")]
         public async Task<IActionResult> DeleteImage(int imageId)
         {
             var image = await _context.ProjectImages.FirstOrDefaultAsync(i => i.Id == imageId);

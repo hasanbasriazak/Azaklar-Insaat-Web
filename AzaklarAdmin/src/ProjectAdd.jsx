@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { HiOutlineDocumentAdd, HiOutlinePhotograph, HiOutlineClipboardList, HiOutlineInformationCircle, HiOutlineLocationMarker, HiOutlineCalendar, HiOutlineTag, HiOutlineCheckCircle, HiX, HiPlus, HiTrash } from 'react-icons/hi';
-import { API_ENDPOINTS, apiCall } from './config/api';
+import { API_ENDPOINTS, apiCall, getApiConfig } from './config/api';
 
 const initialStat = { value: '', label: '', unit: '' };
 
@@ -72,7 +72,7 @@ export default function ProjectAdd({ onSuccess, onCancel, editData }) {
 
   const removeExistingImage = async (imageId) => {
     try {
-      const result = await apiCall(API_ENDPOINTS.DELETE_IMAGE(imageId), { method: 'DELETE' });
+      const result = await apiCall(`/api/projects/images/${imageId}/delete`, { method: 'POST' });
       if (result.success) {
         setForm(f => ({
           ...f,
@@ -86,19 +86,48 @@ export default function ProjectAdd({ onSuccess, onCancel, editData }) {
     }
   };
 
+  const setFeaturedImage = async (imageId) => {
+    try {
+      const result = await apiCall(`/api/projects/images/${imageId}/set-featured`, { method: 'POST' });
+      if (result.success) {
+        setForm(f => ({
+          ...f,
+          images: f.images.map(img => ({
+            ...img,
+            isFeatured: img.id === imageId
+          })).sort((a, b) => {
+            if (a.isFeatured && !b.isFeatured) return -1;
+            if (!a.isFeatured && b.isFeatured) return 1;
+            return 0;
+          })
+        }));
+        alert('Vitrin fotoğrafı başarıyla ayarlandı!');
+      } else {
+        alert('Vitrin fotoğrafı ayarlanırken hata oluştu: ' + result.error);
+      }
+    } catch (err) {
+      alert('Vitrin fotoğrafı ayarlanırken hata oluştu');
+    }
+  };
+
   // Form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError(''); setSuccess(false);
     try {
       // 1. Proje bilgisini kaydet
-      const result = await apiCall(API_ENDPOINTS.PROJECTS, {
-        method: editData ? 'PUT' : 'POST',
+      const result = await apiCall(editData ? API_ENDPOINTS.PROJECTS_UPDATE : API_ENDPOINTS.PROJECTS, {
+        method: editData ? 'POST' : 'POST',
         body: JSON.stringify({
           ...form,
+          id: editData ? editData.id : undefined, // Update için ID gerekli
           status: Number(form.status), // API'ye int olarak gönder
           features: form.features.filter(f => f.trim()).map(f => ({ feature: f })),
-          stats: form.stats.filter(s => s.value && s.label),
+          stats: form.stats.filter(s => s.value && s.label).map(s => ({ 
+            value: s.value, 
+            label: s.label, 
+            unit: s.unit || '' 
+          })),
           images: [] // ilk başta boş, sonra upload
         })
       });
@@ -390,14 +419,18 @@ export default function ProjectAdd({ onSuccess, onCancel, editData }) {
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {form.images.map((image, index) => {
-                    const imageUrl = `http://localhost:5177${image.imageUrl}`;
+                    const { baseUrl } = getApiConfig();
+                    const imageUrl = `${baseUrl}${image.imageUrl}`;
+                    const isFeatured = image.isFeatured;
                     console.log('Resim URL:', imageUrl);
                     return (
                       <div key={image.id || index} className="relative group">
                         <img
                           src={imageUrl}
                           alt={`Proje resmi ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                          className={`w-full h-32 object-cover rounded-lg border-2 ${
+                            isFeatured ? 'border-blue-500' : 'border-gray-200'
+                          }`}
                           onError={(e) => {
                             console.error('Resim yüklenemedi:', imageUrl);
                             e.target.style.display = 'none';
@@ -406,13 +439,38 @@ export default function ProjectAdd({ onSuccess, onCancel, editData }) {
                             console.log('Resim başarıyla yüklendi:', imageUrl);
                           }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => removeExistingImage(image.id)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <HiX className="w-3 h-3" />
-                        </button>
+                        
+                        {/* Vitrin Badge */}
+                        {isFeatured && (
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                            Vitrin
+                          </div>
+                        )}
+                        
+                        {/* Butonlar */}
+                        <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* Vitrin Yap Butonu */}
+                          {!isFeatured && (
+                            <button
+                              type="button"
+                              onClick={() => setFeaturedImage(image.id)}
+                              className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600"
+                              title="Vitrin fotoğrafı yap"
+                            >
+                              ⭐
+                            </button>
+                          )}
+                          
+                          {/* Sil Butonu */}
+                          <button
+                            type="button"
+                            onClick={() => removeExistingImage(image.id)}
+                            className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                            title="Resmi sil"
+                          >
+                            <HiX className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

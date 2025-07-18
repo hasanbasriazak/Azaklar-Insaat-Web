@@ -36,32 +36,15 @@ builder.Services.AddDbContext<AzaklarDbContext>(options =>
 // Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// CORS Configuration
+// CORS Configuration - Allow all origins for now
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AzaklarPolicy", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "http://localhost:5174", 
-            "http://localhost:3000",
-            "https://www.azaklaryapi.com",
-            "http://www.azaklaryapi.com",
-            "https://azaklaryapi.com",
-            "http://azaklaryapi.com",
-            "http://94.73.149.144",
-            "https://www.azaklarinsaat.com",
-            "http://www.azaklarinsaat.com",
-            "https://azaklarinsaat.com",
-            "http://azaklarinsaat.com",
-            "https://www.azaklaryapi.com",
-            "http://www.azaklaryapi.com",
-            "https://azaklaryapi.com",
-            "http://azaklaryapi.com"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
@@ -100,15 +83,22 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-// Use CORS
-app.UseCors("AzaklarPolicy");
+// Use CORS - en üstte olmalı
+app.UseCors("AllowAll");
+
+// Create uploads directory if it doesn't exist
+var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+if (!Directory.Exists(uploadsDir))
+{
+    Directory.CreateDirectory(uploadsDir);
+    app.Logger.LogInformation("📁 Uploads directory created: {Path}", uploadsDir);
+}
 
 // Static files for uploads
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsDir),
     RequestPath = "/uploads"
 });
 
@@ -145,6 +135,33 @@ app.Use(async (context, next) =>
     
     logger.LogInformation("📝 {Timestamp} | {Method} {Path} | IP: {IP}", timestamp, method, path, ip);
     await next();
+});
+
+// Global error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Logger;
+        logger.LogError(ex, "❌ Unhandled exception: {Method} {Path}", context.Request.Method, context.Request.Path);
+        
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        
+        var errorResponse = new
+        {
+            success = false,
+            message = "Sunucu hatası oluştu",
+            error = app.Environment.IsDevelopment() ? ex.Message : "Internal server error",
+            timestamp = DateTime.Now
+        };
+        
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResponse));
+    }
 });
 
 // Remove HTTPS redirection for production Windows hosting compatibility

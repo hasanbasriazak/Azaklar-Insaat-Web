@@ -13,6 +13,8 @@ import {
   HiOfficeBuilding
 } from 'react-icons/hi';
 
+const baseUrl = import.meta.env.PROD ? "https://api.azaklaryapi.com" : "http://localhost:5177";
+
 const ProjectDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ const ProjectDetail = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await fetch(`http://localhost:5177/api/projects/${slug}`);
+        const response = await fetch(`${baseUrl}/api/projects/${slug}`);
         if (response.ok) {
           const result = await response.json();
           // API response yapısı: { success: true, data: project }
@@ -236,7 +238,7 @@ const ProjectDetail = () => {
                   onClick={() => openLightbox(index)}
                 >
                   <img
-                    src={`http://localhost:5177${image}`}
+                    src={`${baseUrl}${image}`}
                     alt={`${project.title} - ${index + 1}`}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -297,7 +299,7 @@ const ProjectDetail = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              src={`http://localhost:5177${selectedImage}`}
+              src={`${baseUrl}${selectedImage}`}
               alt={project.title}
               className="max-w-full max-h-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
