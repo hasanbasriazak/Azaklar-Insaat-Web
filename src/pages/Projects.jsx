@@ -7,39 +7,25 @@ const baseUrl = import.meta.env.PROD ? "https://api.azaklaryapi.com" : "http://l
 
 // Resim yükleme komponenti
 const ImageLoader = ({ src, alt, fallbackSrc, className }) => {
-  const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
 
-  const handleLoad = () => {
-    setImageLoading(false);
-    setImageError(false);
-  };
-
   const handleError = () => {
     setImageError(true);
-    setImageLoading(false);
   };
 
   useEffect(() => {
     setCurrentSrc(src);
-    setImageLoading(true);
     setImageError(false);
   }, [src]);
 
   return (
     <div className="relative w-full h-full">
-      {imageLoading && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      )}
       {!imageError && (
         <img
           src={currentSrc}
           alt={alt}
-          className={`${className} ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-          onLoad={handleLoad}
+          className={className}
           onError={handleError}
         />
       )}

@@ -44,7 +44,12 @@ namespace AzaklarApi.Controllers
                         s.Label,
                         s.Unit
                     }).ToList(),
-                    Images = p.Images?.OrderByDescending(i => i.IsFeatured).ThenBy(i => i.Id).Select(i => i.ImageUrl).ToList()
+                    Images = p.Images?
+                        .OrderByDescending(i => i.IsFeatured)
+                        .ThenBy(i => i.Id)
+                        .Select(i => i.ImageUrl)
+                        .Take(1)
+                        .ToList()
                 }).ToList();
 
                 return Ok(new { success = true, data = projectDtos });
